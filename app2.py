@@ -22,18 +22,17 @@ if "failed_attempts" not in st.session_state:
 if "block_until" not in st.session_state:
     st.session_state.block_until = 0
 
-# --- 4. دالة جلب معلومات الموقع الجغرافي والـ IP ---
+# --- 4. دالة جلب معلومات الموقع الجغرافي والـ IP الحقيقي ---
 def get_user_location_info():
     try:
-        # محاولة سحب الـ IP الحقيقي للزائر من هيدرز Streamlit
-        headers = st.context.headers
-        user_ip = headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        # جلب الـ IP العام الحقيقي لجهازك عبر خدمة ipify
+        ip_response = requests.get('https://api.ipify.org?format=json', timeout=5)
+        user_ip = ip_response.json().get('ip', '')
         
-        # إذا لم يكن موجوداً محلياً، نعتمد على الخدمة الخارجية لتحديد الـ IP تلقائياً
-        if not user_ip:
-            url = "http://ip-api.com/json/?fields=66846719"
-        else:
+        if user_ip:
             url = f"http://ip-api.com/json/{user_ip}?fields=66846719"
+        else:
+            url = "http://ip-api.com/json/?fields=66846719"
             
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -41,7 +40,6 @@ def get_user_location_info():
         return {}
     except:
         return {}
-
 # --- 5. دالة إرسال الإيميل التلقائي ---
 def send_email_alert(subject, body_text):
     try:
