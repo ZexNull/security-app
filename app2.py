@@ -25,19 +25,11 @@ if "block_until" not in st.session_state:
 # --- 4. دالة جلب معلومات الموقع والـ IP الحقيقي للزائر ---
 def get_user_location_info():
     try:
-        # فحص هيدرز المتصفح وسحب الآيب الحقيقي للعميل من بروكسي ستريمليت
-        headers = st.context.headers
+        # استخدام خدمة بديلة لجلب الآيب العام الفعلي الذي يراه الإنترنت
+        ip_response = requests.get('https://api64.ipify.org?format=json', timeout=5)
+        user_ip = ip_response.json().get('ip', '')
         
-        # البحث عن الآيب في مختلف احتمالات الهيدرز
-        user_ip = ""
-        for key in ["X-Forwarded-For", "x-forwarded-for", "X-Real-Ip", "x-real-ip"]:
-            if key in headers and headers[key]:
-                # الخانة قد تحتوي على عدة آيبات مفصولة بفاصلة، أول واحد هو آيب المستخدم الحقيقي
-                user_ip = headers[key].split(",")[0].strip()
-                break
-        
-        # إذا وجدنا الآيب الحقيقي، نرسله لـ ip-api، وإلا نتركها تبحث تلقائياً
-        if user_ip and user_ip != "10.12.92.2": # استبعاد الآيب الداخلي للسيرفر إن وجد
+        if user_ip:
             url = f"http://ip-api.com/json/{user_ip}?fields=66846719"
         else:
             url = "http://ip-api.com/json/?fields=66846719"
